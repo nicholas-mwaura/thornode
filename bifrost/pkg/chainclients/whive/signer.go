@@ -11,15 +11,14 @@ import (
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/hashicorp/go-multierror"
-	"github.com/nicholas-mwaura/whvd/btcec"
-	"github.com/nicholas-mwaura/whvd/btcjson"
-	"github.com/nicholas-mwaura/whvd/chaincfg"
-	"github.com/nicholas-mwaura/whvd/chaincfg/chainhash"
-	"github.com/nicholas-mwaura/whvd/mempool"
-	"github.com/nicholas-mwaura/whvd/wire"
-	"github.com/nicholas-mwaura/whiveutil"
-	//txscript "gitlab.com/thorchain/bifrost/whvd-txscript"
-	txscript "github.com/nicholas-mwaura/whvd-txscript"
+	"github.com/nicholas-mwaura/twhd/btcec"
+	"github.com/nicholas-mwaura/twhd/btcjson"
+	"github.com/nicholas-mwaura/twhd/chaincfg"
+	"github.com/nicholas-mwaura/twhd/chaincfg/chainhash"
+	"github.com/nicholas-mwaura/twhd/mempool"
+	"github.com/nicholas-mwaura/twhd/wire"
+	"github.com/nicholas-mwaura/twhutil"
+	txscript "github.com/nicholas-mwaura/whivd-txscript"
 	stypes "gitlab.com/thorchain/thornode/bifrost/thorclient/types"
 	"gitlab.com/thorchain/thornode/bifrost/tss"
 	"gitlab.com/thorchain/thornode/common"
@@ -33,7 +32,7 @@ const (
 	SatsPervBytes = 25
 	// MinUTXOConfirmation UTXO that has less confirmation then this will not be spent , unless it is yggdrasil
 	MinUTXOConfirmation        = 1
-	defaultMaxWHIVEFeeRate       = whiveutil.SatoshiPerBitcoin / 10
+	defaultMaxWHIVEFeeRate       = twhutil.SatoshiPerBitcoin / 10
 	maxUTXOsToSpend            = 15
 	minSpendableUTXOAmountSats = 10000 // If UTXO is less than this , it will not observed , and will not spend it either
 )
@@ -49,7 +48,7 @@ func (c *Client) getChainCfg() *chaincfg.Params {
 	case common.MockNet:
 		return &chaincfg.RegressionNetParams
 	case common.TestNet:
-		return &chaincfg.TestNet4Params
+		return &chaincfg.TestNet3Params
 	case common.MainNet:
 		return &chaincfg.MainNetParams
 	}
@@ -66,7 +65,7 @@ func (c *Client) getGasCoin(tx stypes.TxOutItem, vSize int64) common.Coin {
 			return common.NewCoin(common.WHIVEAsset, cosmos.NewUint(uint64(vSize*gasRate)))
 		}
 		if fee != 0.0 && vSize != 0 {
-			amt, err := whiveutil.NewAmount(fee)
+			amt, err := twhutil.NewAmount(fee)
 			if err != nil {
 				c.logger.Err(err).Msg("fail to convert amount from float64 to int64")
 			} else {
@@ -108,7 +107,7 @@ func (c *Client) getUtxoToSpend(pubKey common.PubKey, total float64) ([]btcjson.
 		return utxos[i].TxID < utxos[j].TxID
 	})
 	var toSpend float64
-	minUTXOAmt := whiveutil.Amount(minSpendableUTXOAmountSats).ToBTC()
+	minUTXOAmt := twhutil.Amount(minSpendableUTXOAmountSats).ToBTC()
 	for _, item := range utxos {
 		if !c.isValidUTXO(item.ScriptPubKey) {
 			c.logger.Info().Msgf("invalid UTXO , can't spent it")
@@ -175,10 +174,10 @@ func (c *Client) getBlockHeight() (int64, error) {
 
 func (c *Client) getWHIVEPaymentAmount(tx stypes.TxOutItem) float64 {
 	amtToPay := tx.Coins.GetCoin(common.WHIVEAsset).Amount.Uint64()
-	amtToPayInWHIVE := whiveutil.Amount(int64(amtToPay)).ToBTC()
+	amtToPayInWHIVE := twhutil.Amount(int64(amtToPay)).ToBTC()
 	if !tx.MaxGas.IsEmpty() {
 		gasAmt := tx.MaxGas.ToCoins().GetCoin(common.WHIVEAsset).Amount
-		amtToPayInWHIVE += whiveutil.Amount(int64(gasAmt.Uint64())).ToBTC()
+		amtToPayInWHIVE += twhutil.Amount(int64(gasAmt.Uint64())).ToBTC()
 	}
 	return amtToPayInWHIVE
 }
@@ -190,7 +189,7 @@ func (c *Client) getSourceScript(tx stypes.TxOutItem) ([]byte, error) {
 		return nil, fmt.Errorf("fail to get source address: %w", err)
 	}
 
-	addr, err := whiveutil.DecodeAddress(sourceAddr.String(), c.getChainCfg())
+	addr, err := twhutil.DecodeAddress(sourceAddr.String(), c.getChainCfg())
 	if err != nil {
 		return nil, fmt.Errorf("fail to decode source address(%s): %w", sourceAddr.String(), err)
 	}
@@ -239,7 +238,7 @@ func (c *Client) SignTx(tx stypes.TxOutItem, thorchainHeight int64) ([]byte, err
 	}
 	redeemTx := wire.NewMsgTx(wire.TxVersion)
 	totalAmt := float64(0)
-	individualAmounts := make(map[string]whiveutil.Amount, len(txes))
+	individualAmounts := make(map[string]twhutil.Amount, len(txes))
 	for _, item := range txes {
 		txID, err := chainhash.NewHashFromStr(item.TxID)
 		if err != nil {
@@ -250,14 +249,14 @@ func (c *Client) SignTx(tx stypes.TxOutItem, thorchainHeight int64) ([]byte, err
 		sourceTxIn := wire.NewTxIn(outputPoint, nil, nil)
 		redeemTx.AddTxIn(sourceTxIn)
 		totalAmt += item.Amount
-		amt, err := whiveutil.NewAmount(item.Amount)
+		amt, err := twhutil.NewAmount(item.Amount)
 		if err != nil {
 			return nil, fmt.Errorf("fail to parse amount(%f): %w", item.Amount, err)
 		}
 		individualAmounts[fmt.Sprintf("%s-%d", txID, item.Vout)] = amt
 	}
 
-	outputAddr, err := whiveutil.DecodeAddress(tx.ToAddress.String(), c.getChainCfg())
+	outputAddr, err := twhutil.DecodeAddress(tx.ToAddress.String(), c.getChainCfg())
 	if err != nil {
 		return nil, fmt.Errorf("fail to decode next address: %w", err)
 	}
@@ -266,7 +265,7 @@ func (c *Client) SignTx(tx stypes.TxOutItem, thorchainHeight int64) ([]byte, err
 		return nil, fmt.Errorf("fail to get pay to address script: %w", err)
 	}
 
-	total, err := whiveutil.NewAmount(totalAmt)
+	total, err := twhutil.NewAmount(totalAmt)
 	if err != nil {
 		return nil, fmt.Errorf("fail to parse total amount(%f),err: %w", totalAmt, err)
 	}
@@ -317,7 +316,7 @@ func (c *Client) SignTx(tx stypes.TxOutItem, thorchainHeight int64) ([]byte, err
 			coinToCustomer.Amount = common.SafeSub(coinToCustomer.Amount, cosmos.NewUint(gap))
 		}
 	}
-	gasAmt := whiveutil.Amount(gasAmtSats)
+	gasAmt := twhutil.Amount(gasAmtSats)
 	if err := c.blockMetaAccessor.UpsertTransactionFee(gasAmt.ToBTC(), int32(totalSize)); err != nil {
 		c.logger.Err(err).Msg("fail to save gas info to UTXO storage")
 	}
@@ -370,7 +369,7 @@ func (c *Client) SignTx(tx stypes.TxOutItem, thorchainHeight int64) ([]byte, err
 		return nil, fmt.Errorf("fail to sign the message: %w", utxoErr)
 	}
 	finalSize := redeemTx.SerializeSize()
-	finalVBytes := mempool.GetTxVirtualSize(whiveutil.NewTx(redeemTx))
+	finalVBytes := mempool.GetTxVirtualSize(twhutil.NewTx(redeemTx))
 	c.logger.Info().Msgf("estimate:%d, final size: %d, final vbyte: %d", totalSize, finalSize, finalVBytes)
 	var signedTx bytes.Buffer
 	if err := redeemTx.Serialize(&signedTx); err != nil {
@@ -500,7 +499,7 @@ func (c *Client) consolidateUTXOs() {
 		}
 		// THORChain usually pay 1.5 of the last observed fee rate
 		feeRate := math.Ceil(float64(c.lastFeeRate) * 3 / 2)
-		amt, err := whiveutil.NewAmount(total)
+		amt, err := twhutil.NewAmount(total)
 		if err != nil {
 			c.logger.Err(err).Msgf("fail to convert to BTC amount: %f", total)
 			continue

@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/cosmos/cosmos-sdk/crypto/codec"
-	"github.com/nicholas-mwaura/whvd/btcec"
+	"github.com/nicholas-mwaura/twhd/btcec"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 

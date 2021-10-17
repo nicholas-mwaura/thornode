@@ -14,8 +14,8 @@ import (
 	"github.com/gcash/bchutil"
 	ltcchaincfg "github.com/ltcsuite/ltcd/chaincfg"
 	"github.com/ltcsuite/ltcutil"
-	whivechaincfg "github.com/nicholas-mwaura/whvd/chaincfg"
-	"github.com/nicholas-mwaura/whiveutil"
+	whivechaincfg "github.com/nicholas-mwaura/twhd/chaincfg"
+	"github.com/nicholas-mwaura/twhutil"
 	"gitlab.com/thorchain/thornode/common/cosmos"
 )
 
@@ -103,13 +103,13 @@ func NewAddress(address string) (Address, error) {
 	}
 
 	// Check other WHIVE address formats with mainnet
-	_, err = whiveutil.DecodeAddress(address, &whivechaincfg.MainNetParams)
+	_, err = twhutil.DecodeAddress(address, &whivechaincfg.MainNetParams)
 	if err == nil {
 		return Address(address), nil
 	}
 
 	// Check WHIVE address formats with testnet
-	_, err = whiveutil.DecodeAddress(address, &whivechaincfg.TestNet4Params)
+	_, err = twhutil.DecodeAddress(address, &whivechaincfg.TestNet3Params)
 	if err == nil {
 		return Address(address), nil
 	}

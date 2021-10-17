@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types"
 	dogchaincfg "github.com/eager7/dogd/chaincfg"
 	ltcchaincfg "github.com/ltcsuite/ltcd/chaincfg"
-	whivechaincfg "github.com/nicholas-mwaura/whvd/chaincfg"
+	whivechaincfg "github.com/nicholas-mwaura/twhd/chaincfg"
 	btypes "gitlab.com/thorchain/binance-sdk/common/types"
 )
 
@@ -145,6 +145,8 @@ func (c Chain) AddressPrefix(cn ChainNetwork) string {
 			return ltcchaincfg.RegressionNetParams.Bech32HRPSegwit
 		case DOGEChain:
 			return dogchaincfg.RegressionNetParams.Bech32HRPSegwit
+		case WHIVEChain:
+			return whivechaincfg.RegressionNetParams.Bech32HRPSegwit
 		}
 	case TestNet:
 		switch c {
@@ -161,6 +163,8 @@ func (c Chain) AddressPrefix(cn ChainNetwork) string {
 			return ltcchaincfg.TestNet4Params.Bech32HRPSegwit
 		case DOGEChain:
 			return dogchaincfg.TestNet3Params.Bech32HRPSegwit
+		case WHIVEChain:
+			return whivechaincfg.TestNet3Params.Bech32HRPSegwit
 		}
 	case MainNet:
 		switch c {
@@ -176,6 +180,8 @@ func (c Chain) AddressPrefix(cn ChainNetwork) string {
 			return ltcchaincfg.MainNetParams.Bech32HRPSegwit
 		case DOGEChain:
 			return dogchaincfg.MainNetParams.Bech32HRPSegwit
+		case WHIVEChain:
+			return whivechaincfg.MainNetParams.Bech32HRPSegwit
 		}
 	}
 	return ""

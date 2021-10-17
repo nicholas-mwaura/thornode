@@ -22,8 +22,8 @@ import (
 	eth "github.com/ethereum/go-ethereum/crypto"
 	"github.com/tendermint/tendermint/crypto"
 
-	whivechaincfg "github.com/nicholas-mwaura/whvd/chaincfg"
-	"github.com/nicholas-mwaura/whiveutil"
+	whivechaincfg "github.com/nicholas-mwaura/twhd/chaincfg"
+	"github.com/nicholas-mwaura/twhutil"
 
 	"gitlab.com/thorchain/thornode/common/cosmos"
 )
@@ -215,7 +215,7 @@ func (pubKey PubKey) GetAddress(chain Chain) (Address, error) {
                 case MainNet:
                         net = &whivechaincfg.MainNetParams
                 }
-                addr, err := whiveutil.NewAddressPubKeyHash(pk.Address().Bytes(), net)
+                addr, err := twhutil.NewAddressPubKeyHash(pk.Address().Bytes(), net)
                 if err != nil {
                         return NoAddress, fmt.Errorf("fail to encode the address, err: %w", err)
                 }

@@ -14,7 +14,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	cKeys "github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/nicholas-mwaura/whvd/btcjson"
+	"github.com/nicholas-mwaura/twhd/btcjson"
 	ctypes "gitlab.com/thorchain/binance-sdk/common/types"
 	. "gopkg.in/check.v1"
 

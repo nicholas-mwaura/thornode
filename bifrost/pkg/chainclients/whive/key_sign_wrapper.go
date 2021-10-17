@@ -3,12 +3,11 @@ package whive
 import (
 	"fmt"
 
-	"github.com/nicholas-mwaura/whvd/btcec"
+	"github.com/nicholas-mwaura/twhd/btcec"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
-	//txscript "gitlab.com/thorchain/bifrost/whvd-txscript"
-	txscript "github.com/nicholas-mwaura/whvd-txscript"
+	txscript "github.com/nicholas-mwaura/whivd-txscript"
 
 	"gitlab.com/thorchain/thornode/bifrost/tss"
 	"gitlab.com/thorchain/thornode/common"

@@ -11,15 +11,14 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/crypto/codec"
-	"github.com/nicholas-mwaura/whvd/btcec"
-	"github.com/nicholas-mwaura/whvd/btcjson"
-	"github.com/nicholas-mwaura/whvd/chaincfg/chainhash"
-	"github.com/nicholas-mwaura/whvd/rpcclient"
-	"github.com/nicholas-mwaura/whiveutil"
+	"github.com/nicholas-mwaura/twhd/btcec"
+	"github.com/nicholas-mwaura/twhd/btcjson"
+	"github.com/nicholas-mwaura/twhd/chaincfg/chainhash"
+	"github.com/nicholas-mwaura/twhd/rpcclient"
+	"github.com/nicholas-mwaura/twhutil"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	//txscript "gitlab.com/thorchain/bifrost/whvd-txscript"
-	txscript "github.com/nicholas-mwaura/whvd-txscript"
+	txscript "github.com/nicholas-mwaura/whivd-txscript"
 	mem "gitlab.com/thorchain/thornode/x/thorchain/memo"
 	tssp "gitlab.com/thorchain/tss/go-tss/tss"
 	"golang.org/x/sync/errgroup"
@@ -207,11 +206,11 @@ func (c *Client) getUTXOs(minConfirm, MaximumConfirm int, pkey common.PubKey) ([
 	if err != nil {
 		return nil, fmt.Errorf("fail to get WHIVE Address for pubkey(%s): %w", pkey, err)
 	}
-	addr, err := whiveutil.DecodeAddress(whiveAddress.String(), c.getChainCfg())
+	addr, err := twhutil.DecodeAddress(whiveAddress.String(), c.getChainCfg())
 	if err != nil {
 		return nil, fmt.Errorf("fail to decode WHIVE address(%s): %w", whiveAddress.String(), err)
 	}
-	return c.client.ListUnspentMinMaxAddresses(minConfirm, MaximumConfirm, []whiveutil.Address{
+	return c.client.ListUnspentMinMaxAddresses(minConfirm, MaximumConfirm, []twhutil.Address{
 		addr,
 	})
 }
@@ -239,7 +238,7 @@ func (c *Client) GetAccount(pkey common.PubKey) (common.Account, error) {
 		}
 		total += item.Amount
 	}
-	totalAmt, err := whiveutil.NewAmount(total)
+	totalAmt, err := twhutil.NewAmount(total)
 	if err != nil {
 		return acct, fmt.Errorf("fail to convert total amount: %w", err)
 	}
@@ -631,12 +630,12 @@ func (c *Client) updateNetworkInfo() {
 		c.logger.Err(err).Msg("fail to get network info")
 		return
 	}
-	amt, err := whiveutil.NewAmount(networkInfo.RelayFee)
+	amt, err := twhutil.NewAmount(networkInfo.RelayFee)
 	if err != nil {
 		c.logger.Err(err).Msg("fail to get minimum relay fee")
 		return
 	}
-	c.minRelayFeeSats = uint64(amt.ToUnit(whiveutil.AmountSatoshi))
+	c.minRelayFeeSats = uint64(amt.ToUnit(twhutil.AmountSatoshi))
 }
 
 func (c *Client) getHighestFeeRate() uint64 {
@@ -755,11 +754,11 @@ func (c *Client) getTxIn(tx *btcjson.TxRawResult, height int64) (types.TxInItem,
 			return types.TxInItem{}, fmt.Errorf("invalid utxo")
 		}
 	}
-	amount, err := whiveutil.NewAmount(output.Value)
+	amount, err := twhutil.NewAmount(output.Value)
 	if err != nil {
 		return types.TxInItem{}, fmt.Errorf("fail to parse float64: %w", err)
 	}
-	amt := uint64(amount.ToUnit(whiveutil.AmountSatoshi))
+	amt := uint64(amount.ToUnit(twhutil.AmountSatoshi))
 
 	gas, err := c.getGas(tx)
 	if err != nil {
@@ -958,19 +957,19 @@ func (c *Client) getGas(tx *btcjson.TxRawResult) (common.Gas, error) {
 			return common.Gas{}, fmt.Errorf("fail to query raw tx from whive node")
 		}
 
-		amount, err := whiveutil.NewAmount(vinTx.Vout[vin.Vout].Value)
+		amount, err := twhutil.NewAmount(vinTx.Vout[vin.Vout].Value)
 		if err != nil {
 			return nil, err
 		}
-		sumVin += uint64(amount.ToUnit(whiveutil.AmountSatoshi))
+		sumVin += uint64(amount.ToUnit(twhutil.AmountSatoshi))
 	}
 	var sumVout uint64 = 0
 	for _, vout := range tx.Vout {
-		amount, err := whiveutil.NewAmount(vout.Value)
+		amount, err := twhutil.NewAmount(vout.Value)
 		if err != nil {
 			return nil, err
 		}
-		sumVout += uint64(amount.ToUnit(whiveutil.AmountSatoshi))
+		sumVout += uint64(amount.ToUnit(twhutil.AmountSatoshi))
 	}
 	totalGas := sumVin - sumVout
 	return common.Gas{
@@ -1009,7 +1008,7 @@ func (c *Client) getCoinbaseValue(blockHeight int64) (int64, error) {
 			for _, opt := range tx.Vout {
 				total += opt.Value
 			}
-			amt, err := whiveutil.NewAmount(total)
+			amt, err := twhutil.NewAmount(total)
 			if err != nil {
 				return 0, fmt.Errorf("fail to parse amount: %w", err)
 			}
@@ -1027,7 +1026,7 @@ func (c *Client) getBlockRequiredConfirmation(txIn types.TxIn, height int64) (in
 		c.logger.Err(err).Msg("fail to get coinbase value")
 	}
 	if totalFeeAndSubsidy == 0 {
-		cbValue, err := whiveutil.NewAmount(DefaultCoinbaseValue)
+		cbValue, err := twhutil.NewAmount(DefaultCoinbaseValue)
 		if err != nil {
 			return 0, fmt.Errorf("fail to parse default coinbase value:%w", err)
 		}
